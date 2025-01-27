@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>French Vocabulary Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        #quiz-container {
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            max-width: 400px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .options button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #f9f9f9;
+        }
+        .options button:hover {
+            background-color: #e0f7fa;
+        }
+        #score {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: #f9f9f9;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 5px 10px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">Score: 0</div>
+    <h1>French Vocabulary Quiz</h1>
+    <div id="quiz-container">
+        <h2 id="question">What is the French for:</h2>
+        <div class="options" id="options-container"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        const csvFilePath = "Word_List.csv"; // Path to your CSV file
+        let data = [];
+        let correctAnswer = null;
+        let score = 0;
+
+        // Function to load a new question
+        function loadQuiz() {
+            // Randomly select 3 words and 1 correct answer
+            const shuffledData = [...data].sort(() => 0.5 - Math.random());
+            const selectedWords = shuffledData.slice(0, 3);
+            correctAnswer = selectedWords[Math.floor(Math.random() * selectedWords.length)];
+
+            // Update question text
+            const questionElement = document.getElementById("question");
+            questionElement.textContent = `What is the French for: "${correctAnswer.english}"?`;
+
+            // Populate answer options
+            const optionsContainer = document.getElementById("options-container");
+            optionsContainer.innerHTML = ""; // Clear previous options
+            selectedWords.forEach(word => {
+                const button = document.createElement("button");
+                button.textContent = word.french;
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // Function to update the score display
+        function updateScore() {
+            const scoreElement = document.getElementById("score");
+            scoreElement.textContent = `Score: ${score}`;
+        }
+
+        // Event listener for answer buttons
+        document.getElementById("options-container").addEventListener("click", (e) => {
+            if (e.target.tagName === "BUTTON") {
+                const selectedAnswer = e.target.textContent;
+                if (selectedAnswer === correctAnswer.french) {
+                    alert("Correct!");
+                    score += 1; // Increment score
+                } else {
+                    alert("Wrong! The correct answer was: " + correctAnswer.french);
+                }
+                updateScore(); // Update score display
+                loadQuiz(); // Load a new question
+            }
+        });
+
+        // Parse the CSV file and start the quiz
+        Papa.parse(csvFilePath, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                data = results.data.map(row => ({
+                    french: row.French,
+                    english: row.English
+                }));
+                loadQuiz(); // Start the first question
+            },
+            error: function(error) {
+                console.error("Error loading CSV:", error);
+            }
+        });
+    </script>
+</body>
+</html>
